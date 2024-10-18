@@ -1,0 +1,7 @@
+cheat-sheet.md
+secrets.env
+podcast-stripper/venv/
+podcast-stripper/cheat-sheet.sh
+podcast-stripper/transcript.pickle
+podcast-manager/venv/
+podcast-manager/cheat-sheet.md
