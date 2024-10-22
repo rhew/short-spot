@@ -5,3 +5,4 @@ podcast-stripper/cheat-sheet.sh
 podcast-stripper/transcript.pickle
 podcast-manager/venv/
 podcast-manager/cheat-sheet.md
+podcast-manager/__pycache__/

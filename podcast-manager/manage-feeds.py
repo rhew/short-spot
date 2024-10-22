@@ -96,7 +96,7 @@ def generate_index(links):
 
 
 @click.command()
-@click.argument('path', default='./')
+@click.argument('path', default='./podcasts/')
 @click.option('--interval', envvar='INTERVAL', default='0',
               help='Manager will run again after this time.')
 @click.option('--download/--no-download', is_flag=True, envvar='DOWNLOAD', default=True,
