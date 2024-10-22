@@ -1,0 +1,9 @@
+services:
+  rhew.org:
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile
+  manager:
+    volumes:
+      - ./podcast-manager/config_local.py:/usr/src/app/config.py
+    environment:
+      INTERVAL: '10'

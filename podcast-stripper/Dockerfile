@@ -10,7 +10,8 @@ RUN apt-get update
 RUN apt-get install ffmpeg -y
 
 RUN pip install pyasyncore
-RUN pip install audioop-lts
+# Allow installation to fail when building locally
+RUN pip install audioop-lts; exit 0
 
 ENV PYTHONUNBUFFERED=1
 

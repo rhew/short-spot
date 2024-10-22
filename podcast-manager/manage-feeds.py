@@ -4,30 +4,13 @@ import datetime
 import hashlib
 import os
 from time import sleep
-import sys
 
+import click
 from feedgen.feed import FeedGenerator
 import feedparser
 import requests
 
-podcast_directory = sys.argv[1] if len(sys.argv) > 1 else './'
-
-feeds = [
-    {
-        'name': 'Freakonomics',
-        'url': 'https://feeds.simplecast.com/Y8lFbOT4',
-        'since': '2024-10-11'
-    },
-    # {
-    #     'name': 'AstronomyCast',
-    #     'url': 'https://astronomycast.libsyn.com/rss',
-    #     'since': '2024-09-01'
-    # },
-    # {
-    #     'name': '99pi',
-    #     'url': 'https://feeds.99percentinvisible.org/99percentinvisible',
-    # },
-]
+from config import feeds
 
 
 def get_filename(year, month, day, feed_name, id, stripped=False):
@@ -38,19 +21,19 @@ def get_filename(year, month, day, feed_name, id, stripped=False):
             + '.mp3')
 
 
-def create_podcast_feed(parsed_input_feed):
+def create_podcast_feed(parsed_input_feed, podcast_name):
     output = FeedGenerator()
-    output.title(input.feed.title)
-    output.link(href=f'https://rhew.org/podcasts/{feed["name"]}.xml',
+    output.title(parsed_input_feed.feed.title)
+    output.link(href=f'https://rhew.org/podcasts/{podcast_name}.xml',
                 rel='self')
-    output.description(input.feed.description)
+    output.description(parsed_input_feed.feed.description)
 
     output.load_extension('podcast')
     output.podcast.itunes_category('Technology', 'Podcasting')
 
-    # output.subtitle(input.feed.subtitle)
-    # output.updated(input.feed.updated)
-    # output.id(input.feed.id)
+    # output.subtitle(parsed_input_feed.feed.subtitle)
+    # output.updated(parsed_input_feed.feed.updated)
+    # output.id(parsed_input_feed.feed.id)
     return output
 
 
@@ -85,56 +68,105 @@ def add_episode(output, input_episode, episode_url):
     output_episode.summary(input_episode.summary)
 
 
-while True:
-    for feed in feeds:
+def generate_index(links):
+    index_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Feeds</title>
+    </head>
+    <body>
+        <h1>Feeds</h1>
+        <ul>
+    """
+    # Add each link to the list
+    for episode_name, url in links:
+        index_html += f'<li><a href="{url}" target="_blank">{episode_name}</a></li>\n'
 
-        input = feedparser.parse(feed['url'])
-        output = create_podcast_feed(input)
+    # Close the HTML tags
+    index_html += """
+        </ul>
+    </body>
+    </html>
+    """
 
-        feed_directory = os.path.join(podcast_directory, feed['name'])
-        os.makedirs(feed_directory, exist_ok=True)
+    return index_html
 
-        for input_episode in input.entries:
-            published = datetime.datetime(*(input_episode['published_parsed'][0:6]))
-            last_quarter = datetime.datetime.now() - datetime.timedelta(weeks=13)
-            if published < last_quarter:
-                continue
-            if 'since' in feed and published < datetime.datetime.strptime(feed['since'], "%Y-%m-%d"):
-                continue
-            episode_filename = get_filename(
-                input_episode['published_parsed'][0],
-                input_episode['published_parsed'][1],
-                input_episode['published_parsed'][2],
-                feed['name'],
-                input_episode.id
-            )
-            episode_filename_stripped = get_filename(
-                input_episode['published_parsed'][0],
-                input_episode['published_parsed'][1],
-                input_episode['published_parsed'][2],
-                feed['name'],
-                input_episode.id,
-                stripped=True
-            )
-            episode_path = os.path.join(feed_directory, episode_filename)
-            episode_path_stripped = os.path.join(feed_directory, episode_filename_stripped)
-            episode_url = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename}'
-            episode_url_stripped = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename_stripped}'
 
-            for link in [link
-                         for link in input_episode.links
-                         if link['type'] == 'audio/mpeg']:
+@click.command()
+@click.argument('path', default='./')
+@click.option('--interval', envvar='INTERVAL', default='0',
+              help='Manager will run again after this time.')
+@click.option('--download/--no-download', is_flag=True, envvar='DOWNLOAD', default=True,
+              help='Actually download episodes.')
+def main(path, interval, download):
+    while True:
+        index_html_links = []
+        for feed in feeds:
 
-                if os.path.isfile(episode_path_stripped):
-                    add_episode(output, input_episode, episode_url_stripped)
-                else:
-                    if not os.path.isfile(episode_path):
-                        print(f"Downloading {episode_filename}.")
-                        download_episode(link['href'], episode_path)
+            input = feedparser.parse(feed['url'])
+            output = create_podcast_feed(input, feed['name'])
 
-                    add_episode(output, input_episode, episode_url)
+            feed_directory = os.path.join(path, feed['name'])
+            os.makedirs(feed_directory, exist_ok=True)
 
-        output.rss_file(os.path.join(podcast_directory, f'{feed["name"]}.xml'))
+            for input_episode in input.entries:
+                published = datetime.datetime(*(input_episode['published_parsed'][0:6]))
+                last_quarter = datetime.datetime.now() - datetime.timedelta(weeks=13)
+                if published < last_quarter:
+                    continue
+                if 'since' in feed and published < datetime.datetime.strptime(feed['since'], "%Y-%m-%d"):
+                    continue
+                episode_filename = get_filename(
+                    input_episode['published_parsed'][0],
+                    input_episode['published_parsed'][1],
+                    input_episode['published_parsed'][2],
+                    feed['name'],
+                    input_episode.id
+                )
+                episode_filename_stripped = get_filename(
+                    input_episode['published_parsed'][0],
+                    input_episode['published_parsed'][1],
+                    input_episode['published_parsed'][2],
+                    feed['name'],
+                    input_episode.id,
+                    stripped=True
+                )
+                episode_path = os.path.join(feed_directory, episode_filename)
+                episode_path_stripped = os.path.join(feed_directory, episode_filename_stripped)
+                episode_url = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename}'
+                episode_url_stripped = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename_stripped}'
 
-    print('will check back in an hour')
-    sleep(3600)
+                for link in [link
+                             for link in input_episode.links
+                             if link['type'] == 'audio/mpeg']:
+
+                    if os.path.isfile(episode_path_stripped):
+                        add_episode(output, input_episode, episode_url_stripped)
+                    else:
+                        if not os.path.isfile(episode_path):
+                            print(f"Downloading {episode_filename}.")
+                            if download:
+                                download_episode(link['href'], episode_path)
+
+                        add_episode(output, input_episode, episode_url)
+
+            output.rss_file(os.path.join(path, f'{feed["name"]}.xml'))
+            index_html_links.append(
+                (feed['name'],
+                 f'https://rhew.org/podcasts/{feed["name"]}.xml'))
+
+        with open(os.path.join(path, "index.html"), "w") as index_html:
+            index_html.write(generate_index(index_html_links))
+
+        if interval != '0':
+            print(f'will check back in {interval} seconds')
+            sleep(int(interval))
+        else:
+            break
+
+
+if __name__ == "__main__":
+    main()
