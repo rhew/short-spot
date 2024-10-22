@@ -113,7 +113,7 @@ def get_trimmed(client, audio_file, transcript, commercial_data):
 
 
 def reduce_audio_file(filename):
-    max_size = 26339874
+    max_size = 16000000
     reduced = AudioSegment.from_mp3(filename)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
         fp.close()
