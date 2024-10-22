@@ -113,14 +113,20 @@ def get_trimmed(client, audio_file, transcript, commercial_data):
 
 
 def reduce_audio_file(filename):
-    max_size = 16000000
+    max_file_size = 50000000
+
+    file_size = os.path.getsize(filename)
+    if file_size > max_file_size:
+        raise ValueError(f'File size ({file_size}) exceeds maximum of {max_file_size}: {filename}.')
+
+    max_transcribe_size = 16000000
     reduced = AudioSegment.from_mp3(filename)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
         fp.close()
     reduced.export(fp.name, format="mp3", parameters=["-ac", "1"])
     reduced_size = os.path.getsize(fp.name)
     frame_rate = reduced.frame_rate
-    while reduced_size >= max_size:
+    while reduced_size >= max_transcribe_size:
         print(f'reduced_size is {reduced_size} bytes.')
         frame_rate = int(frame_rate/2)
         reduced.export(fp.name, format="mp3", parameters=["-ac", "1", "-ab", f'{frame_rate}'])
@@ -187,7 +193,10 @@ def strip_all(client, directory):
         except ValueError as e:
             print(e)
 
-        strip(client, filepath, stripped_name)
+        try:
+            strip(client, filepath, stripped_name)
+        except ValueError as e:
+            print(f'Failed to strip {filepath}: {e}')
 
 
 class EventHandler(pyinotify.ProcessEvent):
