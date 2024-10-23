@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import datetime
+import contextlib
 from glob import glob
 import json
+import subprocess
 import tempfile
 import os
 import pickle
@@ -67,14 +69,65 @@ def get_commercials(client, transcript):
         return json.loads(json_string[:e.pos])
 
 
-def get_sponsor(client, company):
-    response = client.audio.speech.create(
+def write_sponsor(client, company, file):
+    with client.audio.speech.with_streaming_response.create(
         model="tts-1",
         voice="onyx",
-        input=f"Sponsored by {company}.",
-    )
+        input=f"This podcast is sponsored by, {commercial['sponsor']}.",
+        response_format='wav'
+    ) as response:
+        response.stream_to_file(file)
 
-    response.stream_to_file("output.mp3")
+
+def write_segment(start_time, end_time, audio_file, segment_file):
+    subprocess.run(['ffmpeg',
+                    '-i', audio_file,
+                    '-ss', srt_format(start_time),
+                    '-t', srt_format(end_time - start_time),
+                    segment_file])
+
+
+def write_last_segment(time, audio_file, segment_file):
+    subprocess.run(['ffmpeg',
+                    '-i', audio_file,
+                    '-sseof', srt_format(time),
+                    segment_file])
+
+
+def join_segments(segment_files, output_file):
+    subprocess.run(['ffmpeg',
+                    '-i', f'concat:{"|".join(segment_files)}',
+                    '-c', 'copy',
+                    output_file])
+
+
+def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
+    num_segments = len(commercial_data) * 2 + 1
+    with contextlib.ExitStack() as stack:
+        segment_files = [stack.enter_context(tempfile.NamedTemporaryFile(suffix='.wav')) for i in range(num_segments)]
+
+        end_commercial_index = 0
+        segment_file_index = 0
+        for commercial in commercial_data:
+            start_time = transcript.segments[commercial['start_line']].start
+            end_time = transcript.segments[commercial['end_line']].end
+
+            if start_time < end_commercial_index:
+                raise IndexError("List of commercials must be sequential.")
+
+            print(f"{int(end_time - start_time)} second message "
+                  + f"from {commercial['sponsor']} "
+                  + f"at {srt_format(start_time)} to {srt_format(end_time)}.")
+
+            write_segment(start_time, end_time, audio_file, segment_files[segment_file_index])
+            segment_file_index += 1
+            write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index])
+            segment_file_index += 1
+
+            end_commercial_index = end_time
+
+        write_last_segment(end_commercial_index, audio_file, segment_files[segment_file_index])
+        join_segments(segment_files, output_file)
 
 
 def get_trimmed(client, audio_file, transcript, commercial_data):
@@ -113,27 +166,17 @@ def get_trimmed(client, audio_file, transcript, commercial_data):
 
 
 def reduce_audio_file(filename):
-    max_file_size = 50000000
-
     file_size = os.path.getsize(filename)
-    if file_size > max_file_size:
-        raise ValueError(f'File size ({file_size}) exceeds maximum of {max_file_size}: {filename}.')
 
-    max_transcribe_size = 16000000
-    reduced = AudioSegment.from_mp3(filename)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
         fp.close()
-    reduced.export(fp.name, format="mp3", parameters=["-ac", "1"])
-    reduced_size = os.path.getsize(fp.name)
-    frame_rate = reduced.frame_rate
-    while reduced_size >= max_transcribe_size:
-        print(f'reduced_size is {reduced_size} bytes.')
-        frame_rate = int(frame_rate/2)
-        reduced.export(fp.name, format="mp3", parameters=["-ac", "1", "-ab", f'{frame_rate}'])
-        print(f'Reduced frame rate to {frame_rate}.')
-        reduced_size = os.path.getsize(fp.name)
-    print(f"Reduced input file by {os.path.getsize(filename)-reduced_size} "
-          + f"to {reduced_size} before transcribing.")
+    subprocess.run(['ffmpeg', '-i', filename,
+                    '-c:a', 'libmp3lame',
+                    '-ac', '1',      # mono
+                    '-ar', '12000',  # 8k produces artifacts in audio
+                    '-map', 'a',     # remove embedded cover art
+                    '-vn', fp.name])
+    print(f"Reduced from {file_size} to {os.path.getsize(fp.name)} before transcribing.")
     return fp.name
 
 
@@ -160,9 +203,7 @@ def strip(client, path, output, load=False):
     print(f'Starting {os.path.basename(path)} -> {os.path.basename(output)}')
     transcript = get_transcript(client, path, load)
     commercials = get_commercials(client, transcript)
-    get_trimmed(
-        client, path, transcript, commercials
-    ).export(output, format="mp3")
+    write_trimmed(client, path, transcript, commercials, output)
 
 
 def get_stripped_name(path):
