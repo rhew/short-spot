@@ -73,14 +73,15 @@ def write_sponsor(client, company, file):
     with client.audio.speech.with_streaming_response.create(
         model="tts-1",
         voice="onyx",
-        input=f"This podcast is sponsored by, {commercial['sponsor']}.",
+        input=f"This podcast is sponsored by, {company}.",
         response_format='wav'
     ) as response:
         response.stream_to_file(file)
 
 
 def write_segment(start_time, end_time, audio_file, segment_file):
-    subprocess.run(['ffmpeg',
+    subprocess.run(['ffmpeg', '-y',
+                    '-loglevel', 'error', '-hide_banner',
                     '-i', audio_file,
                     '-ss', srt_format(start_time),
                     '-t', srt_format(end_time - start_time),
@@ -88,14 +89,16 @@ def write_segment(start_time, end_time, audio_file, segment_file):
 
 
 def write_last_segment(time, audio_file, segment_file):
-    subprocess.run(['ffmpeg',
+    subprocess.run(['ffmpeg', '-y',
+                    '-loglevel', 'error', '-hide_banner',
                     '-i', audio_file,
                     '-sseof', srt_format(time),
                     segment_file])
 
 
 def join_segments(segment_files, output_file):
-    subprocess.run(['ffmpeg',
+    subprocess.run(['ffmpeg', '-y',
+                    '-loglevel', 'error', '-hide_banner',
                     '-i', f'concat:{"|".join(segment_files)}',
                     '-c', 'copy',
                     output_file])
@@ -165,12 +168,24 @@ def get_trimmed(client, audio_file, transcript, commercial_data):
     return trimmed
 
 
+def get_length(filename):
+    output = subprocess.check_output(
+        ['ffprobe',
+         '-v', 'error',
+         '-show_entries', 'format=duration',
+         '-of', 'default=noprint_wrappers=1:nokey=1',
+         filename],
+        encoding='utf-8')
+    return int(float(output))
+
+
 def reduce_audio_file(filename):
     file_size = os.path.getsize(filename)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
         fp.close()
-    subprocess.run(['ffmpeg', '-i', filename,
+    subprocess.run(['ffmpeg', '-i', filename, '-y',
+                    '-loglevel', 'error', '-hide_banner',
                     '-c:a', 'libmp3lame',
                     '-ac', '1',      # mono
                     '-ar', '12000',  # 8k produces artifacts in audio
@@ -201,6 +216,10 @@ def get_transcript(client, filename, load=False):
 
 def strip(client, path, output, load=False):
     print(f'Starting {os.path.basename(path)} -> {os.path.basename(output)}')
+    MAX_PODCAST_LENGTH = 60*60
+    if get_length(path) > MAX_PODCAST_LENGTH:
+        print(f'Skipping. {os.path.basename(path)} is longer than {MAX_PODCAST_LENGTH} seconds.')
+        return
     transcript = get_transcript(client, path, load)
     commercials = get_commercials(client, transcript)
     write_trimmed(client, path, transcript, commercials, output)
