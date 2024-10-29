@@ -10,7 +10,7 @@ import os
 import pickle
 
 import click
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 from pydub import AudioSegment
 import pyinotify
 
@@ -220,9 +220,12 @@ def strip(client, path, output, load=False):
     if get_length(path) > MAX_PODCAST_LENGTH:
         print(f'Skipping. {os.path.basename(path)} is longer than {MAX_PODCAST_LENGTH} seconds.')
         return
-    transcript = get_transcript(client, path, load)
-    commercials = get_commercials(client, transcript)
-    write_trimmed(client, path, transcript, commercials, output)
+    try:
+        transcript = get_transcript(client, path, load)
+        commercials = get_commercials(client, transcript)
+        write_trimmed(client, path, transcript, commercials, output)
+    except RateLimitError as error:
+        raise error
 
 
 def get_stripped_name(path):
