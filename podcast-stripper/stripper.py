@@ -11,7 +11,6 @@ import pickle
 
 import click
 from openai import OpenAI, RateLimitError
-from pydub import AudioSegment
 import pyinotify
 
 
