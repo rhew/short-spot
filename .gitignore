@@ -3,6 +3,9 @@ secrets.env
 podcast-stripper/venv/
 podcast-stripper/cheat-sheet.sh
 podcast-stripper/transcript.pickle
+podcast-stripper/__pycache__/
+podcast-stripper/tests/__pycache__/
 podcast-manager/venv/
+podcast-manager/podcasts/
 podcast-manager/cheat-sheet.md
 podcast-manager/__pycache__/
