@@ -32,6 +32,7 @@ def seconds_to_ffmpeg_format(time_s):
 
 
 def write_audio_clip(input_file, output_file, start_time_s, end_time_s=None):
+    print(f'Writing from {input_file} to {output_file}; from {start_time_s} to {end_time_s}')
     if end_time_s is not None:
         command = [
             'ffmpeg',
@@ -65,7 +66,8 @@ def write_audio_clip(input_file, output_file, start_time_s, end_time_s=None):
     subprocess.run(command)
 
 
-def join_segments(input_file_list, output_file, video_file=None):
+def join_segments_mp3(input_file_list, output_file, video_file=None):
+    print(f'Joining {input_file_list} to {output_file}')
     command = [
         'ffmpeg',
         '-y',
@@ -74,10 +76,11 @@ def join_segments(input_file_list, output_file, video_file=None):
         '-hide_banner',
         '-i',
         f'concat:{"|".join(input_file_list)}',
-        '-c',
-        'copy',
+        '-c:a',
+        'libmp3lame',
         output_file
     ]
+    print(f'Command: {command}')
     subprocess.run(command)
 
 

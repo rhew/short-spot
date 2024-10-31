@@ -12,9 +12,10 @@ import pyinotify
 
 
 from ffmpeg_util import (
+    seconds_to_ffmpeg_format,
     reduce_audio_file,
     write_audio_clip,
-    join_segments,
+    join_segments_mp3,
     get_duration_s
 )
 from openai_util import (
@@ -24,50 +25,46 @@ from openai_util import (
 )
 
 
-def srt_format(timestamp):
-    return datetime.datetime.strftime(
-        datetime.datetime.fromtimestamp(timestamp), "%H:%M:%S,%f")[:-3]
-
-
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     num_segments = len(commercial_data) * 2 + 1
     with contextlib.ExitStack() as stack:
         segment_files = [
-            stack.enter_context(tempfile.NamedTemporaryFile(suffix='.wav'))
+            stack.enter_context(tempfile.NamedTemporaryFile(delete=False, suffix='.wav'))
             for i in range(num_segments)
         ]
 
-        end_commercial_index = 0
+        prev_commercial_end_s = 0
         segment_file_index = 0
         for commercial in commercial_data:
-            start_time_s = transcript.segments[commercial['start_line']].start
-            end_time_s = transcript.segments[commercial['end_line']].end
+            commercial_start_s = transcript.segments[commercial['start_line']].start
+            commercial_end_s = transcript.segments[commercial['end_line']].end
 
-            if start_time_s < end_commercial_index:
+            if commercial_start_s < prev_commercial_end_s:
                 raise IndexError("List of commercials must be sequential.")
 
-            print(f"{int(end_time_s - start_time_s)} second message "
+            print(f"{int(commercial_end_s - commercial_start_s)} second message "
                   + f"from {commercial['sponsor']} "
-                  + f"at {srt_format(start_time_s)} to {srt_format(end_time_s)}.")
+                  + f"at {seconds_to_ffmpeg_format(commercial_start_s)} "
+                  + f"to {seconds_to_ffmpeg_format(commercial_end_s)}.")
 
             write_audio_clip(
                 audio_file,
                 segment_files[segment_file_index].name,
-                start_time_s,
-                end_time_s
+                prev_commercial_end_s,
+                commercial_start_s
             )
             segment_file_index += 1
             write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index].name)
             segment_file_index += 1
 
-            end_commercial_index = end_time_s
+            prev_commercial_end_s = commercial_end_s
 
         write_audio_clip(
             audio_file,
-            segment_files[segment_file_index].name
-            end_commercial_index,
+            segment_files[segment_file_index].name,
+            prev_commercial_end_s
         )
-        join_segments([fp.name for fp in segment_files], output_file)
+        join_segments_mp3([fp.name for fp in segment_files], output_file)
 
 
 def strip(client, path, output):

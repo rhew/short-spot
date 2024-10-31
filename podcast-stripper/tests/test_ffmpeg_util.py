@@ -3,7 +3,7 @@ import unittest
 
 from ffmpeg_util import (
     seconds_to_ffmpeg_format, reduce_audio_file,
-    write_audio_clip, join_segments, get_duration_s, get_size
+    write_audio_clip, join_segments_mp3, get_duration_s, get_size
 )
 
 
@@ -35,10 +35,10 @@ class TestFFmpegUtil(unittest.TestCase):
         self.assertGreaterEqual(get_duration_s(output_file), 3)
         self.assertLessEqual(get_duration_s(output_file), 5)
 
-    def test_join_segments(self):
+    def test_join_segments_mp3(self):
         input_files = [FILE1, FILE2]
         output_file = '/tmp/test-join-segments.mp3'
-        join_segments(input_files, output_file)
+        join_segments_mp3(input_files, output_file)
         expected_duration = (get_duration_s(FILE1) +
                              get_duration_s(FILE2))
         self.assertGreaterEqual(get_duration_s(output_file),
