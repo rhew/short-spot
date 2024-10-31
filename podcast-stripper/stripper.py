@@ -51,10 +51,10 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
                   + f"at {srt_format(start_time_s)} to {srt_format(end_time_s)}.")
 
             write_audio_clip(
-                start_time_s,
-                end_time_s,
                 audio_file,
-                segment_files[segment_file_index].name
+                segment_files[segment_file_index].name,
+                start_time_s,
+                end_time_s
             )
             segment_file_index += 1
             write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index].name)
@@ -62,8 +62,11 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
 
             end_commercial_index = end_time_s
 
-        write_audio_clip(end_commercial_index, audio_file,
-                         segment_files[segment_file_index].name)
+        write_audio_clip(
+            audio_file,
+            segment_files[segment_file_index].name
+            end_commercial_index,
+        )
         join_segments([fp.name for fp in segment_files], output_file)
 
 
