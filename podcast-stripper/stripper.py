@@ -32,7 +32,10 @@ def srt_format(timestamp):
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     num_segments = len(commercial_data) * 2 + 1
     with contextlib.ExitStack() as stack:
-        segment_files = [stack.enter_context(tempfile.NamedTemporaryFile(suffix='.wav')) for i in range(num_segments)]
+        segment_files = [
+            stack.enter_context(tempfile.NamedTemporaryFile(suffix='.wav'))
+            for i in range(num_segments)
+        ]
 
         end_commercial_index = 0
         segment_file_index = 0
@@ -47,7 +50,12 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
                   + f"from {commercial['sponsor']} "
                   + f"at {srt_format(start_time)} to {srt_format(end_time)}.")
 
-            write_audio_clip(start_time, end_time, audio_file, segment_files[segment_file_index].name)
+            write_audio_clip(
+                start_time,
+                end_time,
+                audio_file,
+                segment_files[segment_file_index].name
+            )
             segment_file_index += 1
             write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index].name)
             segment_file_index += 1

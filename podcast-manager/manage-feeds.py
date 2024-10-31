@@ -160,7 +160,8 @@ def main(path, interval, download):
                 last_quarter = datetime.datetime.now() - datetime.timedelta(weeks=13)
                 if published < last_quarter:
                     continue
-                if 'since' in feed and published < datetime.datetime.strptime(feed['since'], "%Y-%m-%d"):
+                if 'since' in feed and published < datetime.datetime.strptime(
+                        feed['since'], "%Y-%m-%d"):
                     continue
                 episode_filename = get_filename(
                     input_episode['published_parsed'][0],
@@ -180,7 +181,8 @@ def main(path, interval, download):
                 episode_path = os.path.join(feed_directory, episode_filename)
                 episode_path_stripped = os.path.join(feed_directory, episode_filename_stripped)
                 episode_url = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename}'
-                episode_url_stripped = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename_stripped}'
+                episode_url_stripped = 'https://rhew.org/podcasts/'
+                + '{feed["name"]}/{episode_filename_stripped}'
 
                 for link in [link
                              for link in input_episode.links

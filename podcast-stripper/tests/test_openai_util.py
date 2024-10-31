@@ -9,11 +9,11 @@ from openai_util import get_transcript, get_commercials
 
 PIZZA_POD = os.path.join(os.path.dirname(__file__), 'pizza_pod.mp3')
 
-PIZZA1_TEXT = """Welcome to Pizza Talk! I’m Pepe Roni, here to bring you a slice of delicious pizza facts in just 30 seconds! Today, let’s talk toppings. Did you know pepperoni is by far the most popular topping in the U.S.? But around the world, people are putting all kinds of things on their pizza. In Japan, you’ll find squid, in Sweden, banana curry, and in Brazil? They top it with green peas!"""
+PIZZA1_TEXT = """Welcome to Pizza Talk! I’m Pepe Roni, here to bring you a slice of delicious pizza facts in just 30 seconds! Today, let’s talk toppings. Did you know pepperoni is by far the most popular topping in the U.S.? But around the world, people are putting all kinds of things on their pizza. In Japan, you’ll find squid, in Sweden, banana curry, and in Brazil? They top it with green peas!"""  # noqa: E501
 
-PIZZA2_TEXT = """But here’s something really surprising: pizza isn’t just about toppings—it’s all about the crust! Thin, thick, or stuffed, it’s the base of every great pizza experience. So next time you’re grabbing a slice, don’t just look at what’s on top. Give a little love to that crispy, chewy crust! Thanks for tuning in to Pizza Talk! Now, go enjoy a slice!"""
+PIZZA2_TEXT = """But here’s something really surprising: pizza isn’t just about toppings—it’s all about the crust! Thin, thick, or stuffed, it’s the base of every great pizza experience. So next time you’re grabbing a slice, don’t just look at what’s on top. Give a little love to that crispy, chewy crust! Thanks for tuning in to Pizza Talk! Now, go enjoy a slice!"""  # noqa: E501
 
-COMMERCIAL_TEXT = """At Cyberdyne Systems, we're building the future today. From advanced robotics to artificial intelligence, our cutting-edge technology enhances industries and empowers humanity. Cyberdyne Systems: Innovation, Precision, Progress. Redefining tomorrow. one breakthrough at a time."""
+COMMERCIAL_TEXT = """At Cyberdyne Systems, we're building the future today. From advanced robotics to artificial intelligence, our cutting-edge technology enhances industries and empowers humanity. Cyberdyne Systems: Innovation, Precision, Progress. Redefining tomorrow. one breakthrough at a time."""  # noqa: E501
 
 
 def just_words(original):
