@@ -131,6 +131,7 @@ def purge_podcast_files(path):
             if has_stripped_version(filename, feed_directory):
                 print(f'Deleting {filename} with stripped version.')
                 os.remove(os.path.join(feed_directory, filename))
+                continue
             if is_old(filename, since):
                 print(f'Deleting old {filename}.')
                 os.remove(os.path.join(feed_directory, filename))
