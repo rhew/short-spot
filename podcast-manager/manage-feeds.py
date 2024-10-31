@@ -109,7 +109,6 @@ def is_old(filename, since):
     try:
         published = datetime.datetime.strptime(published_str, "%Y-%m-%d")
     except ValueError:
-        print(f"Skipping {filename}, it doesn't start with a valid date.")
         return False
 
     if published >= since:
@@ -122,20 +121,19 @@ def purge_podcast_files(path):
     for feed in feeds:
         feed_directory = os.path.join(path, feed['name'])
         if not os.path.exists(feed_directory):
-            print(f"Feed directory {feed_directory} does not exist, skipping.")
             continue
 
         since = datetime.datetime.strptime(feed['since'], "%Y-%m-%d")
 
         for filename in os.listdir(feed_directory):
             if not filename.endswith('.mp3'):
-                print(f"Skipping {filename}, it's not an mp3.")
                 continue
             if has_stripped_version(filename, feed_directory):
                 print(f'Deleting {filename} with stripped version.')
-                continue
+                os.remove(os.path.join(feed_directory, filename))
             if is_old(filename, since):
                 print(f'Deleting old {filename}.')
+                os.remove(os.path.join(feed_directory, filename))
 
 
 @click.command()
@@ -147,7 +145,6 @@ def purge_podcast_files(path):
 def main(path, interval, download):
     while True:
         purge_podcast_files(path)
-        exit(1)
         index_html_links = []
         for feed in feeds:
 
