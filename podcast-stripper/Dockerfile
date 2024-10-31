@@ -2,6 +2,8 @@ FROM python:3
 
 WORKDIR /usr/src/app
 ADD stripper.py .
+ADD ffmpeg_util.py .
+ADD openai_util.py .
 ADD requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
