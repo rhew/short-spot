@@ -15,7 +15,7 @@ from ffmpeg_util import (
     reduce_audio_file,
     write_audio_clip,
     join_segments,
-    get_duration
+    get_duration_s
 )
 from openai_util import (
     get_transcript,
@@ -70,7 +70,7 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
 def strip(client, path, output):
     print(f'Starting {os.path.basename(path)} -> {os.path.basename(output)}')
     MAX_PODCAST_LENGTH = 60*60
-    if get_duration(path) > MAX_PODCAST_LENGTH:
+    if get_duration_s(path) > MAX_PODCAST_LENGTH:
         print(f'Skipping. {os.path.basename(path)} is longer than {MAX_PODCAST_LENGTH} seconds.')
         return
     try:
