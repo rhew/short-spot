@@ -40,19 +40,19 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
         end_commercial_index = 0
         segment_file_index = 0
         for commercial in commercial_data:
-            start_time = transcript.segments[commercial['start_line']].start
-            end_time = transcript.segments[commercial['end_line']].end
+            start_time_s = transcript.segments[commercial['start_line']].start
+            end_time_s = transcript.segments[commercial['end_line']].end
 
-            if start_time < end_commercial_index:
+            if start_time_s < end_commercial_index:
                 raise IndexError("List of commercials must be sequential.")
 
-            print(f"{int(end_time - start_time)} second message "
+            print(f"{int(end_time_s - start_time_s)} second message "
                   + f"from {commercial['sponsor']} "
-                  + f"at {srt_format(start_time)} to {srt_format(end_time)}.")
+                  + f"at {srt_format(start_time_s)} to {srt_format(end_time_s)}.")
 
             write_audio_clip(
-                start_time,
-                end_time,
+                start_time_s,
+                end_time_s,
                 audio_file,
                 segment_files[segment_file_index].name
             )
@@ -60,7 +60,7 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
             write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index].name)
             segment_file_index += 1
 
-            end_commercial_index = end_time
+            end_commercial_index = end_time_s
 
         write_audio_clip(end_commercial_index, audio_file,
                          segment_files[segment_file_index].name)
