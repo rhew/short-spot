@@ -128,7 +128,7 @@ class EventHandler(pyinotify.ProcessEvent):
 @click.option('--open-ai-key', envvar='OPEN_AI_KEY', help='OpenAI API key')
 @click.option('--output', help='Audio file with result')
 @click.option('--monitor', is_flag=True, help='Monitor the given path')
-def main(path, open_ai_key, output, load, monitor):
+def main(path, open_ai_key, output, monitor):
     client = OpenAI(api_key=open_ai_key)
 
     if monitor:
