@@ -26,14 +26,14 @@ def reduce_audio_file(input_file, output_file):
     subprocess.run(command)
 
 
-def seconds_to_ffmpeg_format(time_s):
+def seconds_to_ffmpeg_format(time):
     return datetime.datetime.strftime(
-        datetime.datetime.utcfromtimestamp(float(time_s)), '%H:%M:%S.%f')[:-3]
+        datetime.datetime.utcfromtimestamp(float(time)), '%H:%M:%S.%f')[:-3]
 
 
-def write_audio_clip(input_file, output_file, start_time_s, end_time_s=None):
-    print(f'Writing from {input_file} to {output_file}; from {start_time_s} to {end_time_s}')
-    if end_time_s is not None:
+def write_audio_clip(input_file, output_file, start_time, end_time=None):
+    if end_time is not None:
+        print(f'Writing from {input_file} to {output_file}; from {start_time} to {end_time}')
         command = [
             'ffmpeg',
             '-y',
@@ -43,14 +43,15 @@ def write_audio_clip(input_file, output_file, start_time_s, end_time_s=None):
             '-i',
             input_file,
             '-ss',
-            seconds_to_ffmpeg_format(start_time_s),
+            seconds_to_ffmpeg_format(start_time),
             '-to',
-            seconds_to_ffmpeg_format(end_time_s),
+            seconds_to_ffmpeg_format(end_time),
             output_file,
         ]
     else:
         sseof = seconds_to_ffmpeg_format(
-                get_duration_s(input_file) - start_time_s)
+                get_duration(input_file) - start_time)
+        print(f'Writing the last {sseof} seconds of {input_file} to {output_file}')
         command = [
             'ffmpeg',
             '-y',
@@ -88,7 +89,7 @@ def get_size(filename):
     return os.path.getsize(filename)
 
 
-def get_duration_s(filename):
+def get_duration(filename):
     command = [
         'ffprobe',
         '-v',

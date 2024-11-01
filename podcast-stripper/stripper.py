@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 
-import datetime
 import contextlib
 from glob import glob
 import tempfile
+import time
 import os
 
 import click
 from openai import OpenAI, RateLimitError
 import pyinotify
 
-
 from ffmpeg_util import (
     seconds_to_ffmpeg_format,
     reduce_audio_file,
     write_audio_clip,
     join_segments_mp3,
-    get_duration_s
+    get_duration
 )
 from openai_util import (
     get_transcript,
@@ -33,44 +32,47 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
             for i in range(num_segments)
         ]
 
-        prev_commercial_end_s = 0
+        prev_commercial_end = 0
         segment_file_index = 0
         for commercial in commercial_data:
-            commercial_start_s = transcript.segments[commercial['start_line']].start
-            commercial_end_s = transcript.segments[commercial['end_line']].end
+            commercial_start = transcript.segments[commercial['start_line']].start
+            commercial_end = transcript.segments[commercial['end_line']].end
 
-            if commercial_start_s < prev_commercial_end_s:
+            if commercial_start < prev_commercial_end:
                 raise IndexError("List of commercials must be sequential.")
 
-            print(f"{int(commercial_end_s - commercial_start_s)} second message "
+            print(f"{int(commercial_end - commercial_start)} second message "
                   + f"from {commercial['sponsor']} "
-                  + f"at {seconds_to_ffmpeg_format(commercial_start_s)} "
-                  + f"to {seconds_to_ffmpeg_format(commercial_end_s)}.")
+                  + f"at {seconds_to_ffmpeg_format(commercial_start)} "
+                  + f"to {seconds_to_ffmpeg_format(commercial_end)}.")
 
             write_audio_clip(
                 audio_file,
                 segment_files[segment_file_index].name,
-                prev_commercial_end_s,
-                commercial_start_s
+                prev_commercial_end,
+                commercial_start
             )
             segment_file_index += 1
             write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index].name)
             segment_file_index += 1
 
-            prev_commercial_end_s = commercial_end_s
+            prev_commercial_end = commercial_end
 
         write_audio_clip(
             audio_file,
             segment_files[segment_file_index].name,
-            prev_commercial_end_s
+            prev_commercial_end
         )
         join_segments_mp3([fp.name for fp in segment_files], output_file)
+
+    print(f'Reduced by {get_duration(audio_file) - get_duration(output_file)} seconds.')
+    time.sleep(600)
 
 
 def strip(client, path, output):
     print(f'Starting {os.path.basename(path)} -> {os.path.basename(output)}')
     MAX_PODCAST_LENGTH = 60*60
-    if get_duration_s(path) > MAX_PODCAST_LENGTH:
+    if get_duration(path) > MAX_PODCAST_LENGTH:
         print(f'Skipping. {os.path.basename(path)} is longer than {MAX_PODCAST_LENGTH} seconds.')
         return
     try:
