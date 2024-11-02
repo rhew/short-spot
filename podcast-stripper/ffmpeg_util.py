@@ -75,8 +75,23 @@ def join_segments_mp3(input_file_list, output_file, video_file=None):
         '-loglevel',
         'error',
         '-hide_banner',
+
+        # Input [0]: one second of silence
+        '-f',
+        'lavfi',
+        '-t',
+        '1',
         '-i',
-        f'concat:{"|".join(input_file_list)}',
+        'anullsrc=r=22000:cl=mono',
+
+        # input [1]-[n], one for each file
+    ] + list(sum([('-i', file) for file in input_file_list], ())) + [
+
+        # Describe the concatenation
+        '-filter_complex',
+        '[0]'.join([f'[{n+1}]' for n in range(len(input_file_list))]) +
+        f'concat=n={str(2*len(input_file_list)-1)}:v=0:a=1',
+
         '-c:a',
         'libmp3lame',
         output_file

@@ -41,7 +41,9 @@ class TestFFmpegUtil(unittest.TestCase):
         output_file = '/tmp/test-join-segments.mp3'
         join_segments_mp3(input_files, output_file)
         expected_duration = (get_duration(FILE1) +
+                             1 +
                              get_duration(COMMERCIAL) +
+                             1 +
                              get_duration(FILE2))
         self.assertGreaterEqual(get_duration(output_file),
                                 expected_duration - 1)
