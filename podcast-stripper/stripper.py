@@ -43,13 +43,13 @@ def get_watermarked(image_file):
             '-composite',
             watermarked.name
         ]
-    try:
-        subprocess.run(command, check=True)
-    except subprocess.CalledProcessError as error:
-        print(f'Failed to watermark {image_file}: {error}')
-        return image_file
+        try:
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as error:
+            print(f'Failed to watermark {image_file}: {error}')
+            return image_file
 
-    return watermarked.name
+        return watermarked.name
 
 
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):

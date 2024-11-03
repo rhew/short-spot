@@ -54,6 +54,7 @@ class TestFFmpegUtil(unittest.TestCase):
     def test_get_image(self):
         self.assertIsNone(get_image(FILE1))
         self.assertIsNotNone(get_image(PIZZA_POD))
+        print(f'Image: {get_image(PIZZA_POD)}')
 
     def test_add_image(self):
         self.assertIsNone(get_image(FILE1))
