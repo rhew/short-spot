@@ -17,7 +17,8 @@ from ffmpeg_util import (
     write_audio_clip,
     join_segments_mp3,
     get_duration,
-    get_image
+    get_image,
+    add_image,
 )
 from openai_util import (
     get_transcript,
@@ -95,7 +96,8 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
             segment_files[segment_file_index].name,
             prev_commercial_end
         )
-        join_segments_mp3([fp.name for fp in segment_files], output_file, image_file)
+        join_segments_mp3([fp.name for fp in segment_files], output_file)
+        add_image(output_file, image_file)
 
     print(f'Reduced by {get_duration(audio_file) - get_duration(output_file)} seconds.')
     time.sleep(600)

@@ -1,4 +1,6 @@
 import os
+import subprocess
+import tempfile
 import unittest
 
 from ffmpeg_util import (
@@ -57,7 +59,8 @@ class TestFFmpegUtil(unittest.TestCase):
         print(f'Image: {get_image(PIZZA_POD)}')
 
     def test_add_image(self):
-        self.assertIsNone(get_image(FILE1))
-        added = add_image(FILE1, IMAGE)
-        print(f'Added: {added}')
-        self.assertIsNotNone(get_image(added))
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+            subprocess.run(['cp', FILE1, temp_file.name])
+            self.assertIsNone(get_image(temp_file.name))
+            add_image(temp_file.name, IMAGE)
+            self.assertIsNotNone(get_image(temp_file.name))

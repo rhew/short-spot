@@ -143,8 +143,8 @@ def add_image(podcast, image_file):
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as error:
             print(f'Failed to add image {image_file} to {podcast}: {error}')
-            return podcast
-        return temp_podcast.name
+            print(' '.join(command))
+        subprocess.run(['cp', temp_podcast.name, podcast])
 
 
 def get_image(filename):
