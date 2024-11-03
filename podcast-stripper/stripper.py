@@ -27,6 +27,9 @@ from openai_util import (
 
 
 def get_watermarked(image_file):
+    if image_file is None:
+        return None
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as watermarked:
         command = [
             'convert',
