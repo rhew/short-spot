@@ -58,6 +58,9 @@ class TestFFmpegUtil(unittest.TestCase):
         self.assertIsNotNone(get_image(PIZZA_POD))
         print(f'Image: {get_image(PIZZA_POD)}')
 
+    def test_add_image_none(self):
+        add_image(FILE1, None)
+
     def test_add_image(self):
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
             subprocess.run(['cp', FILE1, temp_file.name])

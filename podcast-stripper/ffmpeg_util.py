@@ -120,6 +120,8 @@ def get_duration(filename):
 
 
 def add_image(podcast, image_file):
+    if image_file is None:
+        return
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_podcast:
         command = [
             'ffmpeg',
