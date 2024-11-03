@@ -73,12 +73,13 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
               + f"at {seconds_to_ffmpeg_format(commercial_start)} "
               + f"to {seconds_to_ffmpeg_format(commercial_end)}.")
 
-        write_audio_clip(
-            audio_file,
-            playlist.new_file('.wav'),
-            prev_commercial_end,
-            commercial_start
-        )
+        if commercial_start > prev_commercial_end:
+            write_audio_clip(
+                audio_file,
+                playlist.new_file('.wav'),
+                prev_commercial_end,
+                commercial_start
+            )
         write_sponsor(client, commercial['sponsor'], playlist.new_file('.wav'))
         prev_commercial_end = commercial_end
 
