@@ -168,5 +168,7 @@ def get_image(filename):
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError:
+        print(f'Failed to extract image from {filename}')
         return None
+    print(f'Extracted image from {filename}')
     return image_file.name
