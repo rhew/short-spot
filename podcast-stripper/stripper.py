@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import contextlib
 from glob import glob
 import subprocess
 import tempfile
@@ -25,6 +24,8 @@ from openai_util import (
     get_commercials,
     write_sponsor
 )
+
+from playlist import Playlist
 
 
 def get_watermarked(image_file):
@@ -57,47 +58,37 @@ def get_watermarked(image_file):
 
 
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
-    num_segments = len(commercial_data) * 2 + 1
+    playlist = Playlist()
     image_file = get_watermarked(get_image(audio_file))
-    with contextlib.ExitStack() as stack:
-        segment_files = [
-            stack.enter_context(tempfile.NamedTemporaryFile(delete=False, suffix='.wav'))
-            for i in range(num_segments)
-        ]
+    prev_commercial_end = 0
+    for commercial in commercial_data:
+        commercial_start = transcript.segments[commercial['start_line']].start
+        commercial_end = transcript.segments[commercial['end_line']].end
 
-        prev_commercial_end = 0
-        segment_file_index = 0
-        for commercial in commercial_data:
-            commercial_start = transcript.segments[commercial['start_line']].start
-            commercial_end = transcript.segments[commercial['end_line']].end
+        if commercial_start < prev_commercial_end:
+            raise IndexError("List of commercials must be sequential.")
 
-            if commercial_start < prev_commercial_end:
-                raise IndexError("List of commercials must be sequential.")
-
-            print(f"{int(commercial_end - commercial_start)} second message "
-                  + f"from {commercial['sponsor']} "
-                  + f"at {seconds_to_ffmpeg_format(commercial_start)} "
-                  + f"to {seconds_to_ffmpeg_format(commercial_end)}.")
-
-            write_audio_clip(
-                audio_file,
-                segment_files[segment_file_index].name,
-                prev_commercial_end,
-                commercial_start
-            )
-            segment_file_index += 1
-            write_sponsor(client, commercial['sponsor'], segment_files[segment_file_index].name)
-            segment_file_index += 1
-
-            prev_commercial_end = commercial_end
+        print(f"{int(commercial_end - commercial_start)} second message "
+              + f"from {commercial['sponsor']} "
+              + f"at {seconds_to_ffmpeg_format(commercial_start)} "
+              + f"to {seconds_to_ffmpeg_format(commercial_end)}.")
 
         write_audio_clip(
             audio_file,
-            segment_files[segment_file_index].name,
-            prev_commercial_end
+            playlist.new_file('.wav'),
+            prev_commercial_end,
+            commercial_start
         )
-        join_segments_mp3([fp.name for fp in segment_files], output_file)
-        add_image(output_file, image_file)
+        write_sponsor(client, commercial['sponsor'], playlist.new_file('.wav'))
+        prev_commercial_end = commercial_end
+
+    write_audio_clip(
+        audio_file,
+        playlist.new_file('.wav'),
+        prev_commercial_end
+    )
+    join_segments_mp3(playlist.get_files(), output_file)
+    add_image(output_file, image_file)
 
     print(f'Reduced by {get_duration(audio_file) - get_duration(output_file)} seconds.')
     time.sleep(600)
