@@ -2,6 +2,7 @@
 
 import contextlib
 from glob import glob
+import subprocess
 import tempfile
 import time
 import os
@@ -15,7 +16,8 @@ from ffmpeg_util import (
     reduce_audio_file,
     write_audio_clip,
     join_segments_mp3,
-    get_duration
+    get_duration,
+    get_image
 )
 from openai_util import (
     get_transcript,
@@ -24,8 +26,35 @@ from openai_util import (
 )
 
 
+def get_watermarked(image_file):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as watermarked:
+        command = [
+            'convert',
+            image_file,
+            '(',
+            'checkmark.png',
+            '-resize',
+            '30%x30%',
+            ')',
+            '-gravity',
+            'northeast',
+            '-geometry',
+            '+5%+5%',
+            '-composite',
+            watermarked.name
+        ]
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as error:
+        print(f'Failed to watermark {image_file}: {error}')
+        return image_file
+
+    return watermarked.name
+
+
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     num_segments = len(commercial_data) * 2 + 1
+    image_file = get_watermarked(get_image(audio_file))
     with contextlib.ExitStack() as stack:
         segment_files = [
             stack.enter_context(tempfile.NamedTemporaryFile(delete=False, suffix='.wav'))
@@ -63,7 +92,7 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
             segment_files[segment_file_index].name,
             prev_commercial_end
         )
-        join_segments_mp3([fp.name for fp in segment_files], output_file)
+        join_segments_mp3([fp.name for fp in segment_files], output_file, image_file)
 
     print(f'Reduced by {get_duration(audio_file) - get_duration(output_file)} seconds.')
     time.sleep(600)

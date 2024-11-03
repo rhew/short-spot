@@ -3,6 +3,7 @@
 import datetime
 import os
 import subprocess
+import tempfile
 
 
 # This function writes a new audio file with the data essential for
@@ -67,7 +68,7 @@ def write_audio_clip(input_file, output_file, start_time, end_time=None):
     subprocess.run(command)
 
 
-def join_segments_mp3(input_file_list, output_file, video_file=None):
+def join_segments_mp3(input_file_list, output_file):
     print(f'Joining {input_file_list} to {output_file}')
     command = [
         'ffmpeg',
@@ -116,3 +117,54 @@ def get_duration(filename):
         filename,
     ]
     return float(subprocess.check_output(command, encoding='utf-8'))
+
+
+def add_image(podcast, image_file):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_podcast:
+        command = [
+            'ffmpeg',
+            '-y',
+            '-loglevel',
+            'error',
+            '-hide_banner',
+            '-i',
+            podcast,
+            '-i',
+            image_file,
+            '-map',
+            '0:0',
+            '-map',
+            '1:0',
+            '-c:v',
+            'copy',
+            temp_podcast.name
+        ]
+        try:
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as error:
+            print(f'Failed to add image {image_file} to {podcast}: {error}')
+            return podcast
+        return temp_podcast.name
+
+
+def get_image(filename):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as image_file:
+        image_file.close()
+        command = [
+            'ffmpeg',
+            '-y',
+            '-loglevel',
+            'error',
+            '-hide_banner',
+            '-i',
+            filename,
+            '-an',
+            '-vcodec',
+            'copy',
+            image_file.name
+        ]
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError:
+        return None
+    return image_file.name

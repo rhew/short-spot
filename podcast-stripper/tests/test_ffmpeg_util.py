@@ -3,13 +3,15 @@ import unittest
 
 from ffmpeg_util import (
     seconds_to_ffmpeg_format, reduce_audio_file,
-    write_audio_clip, join_segments_mp3, get_duration, get_size
+    write_audio_clip, join_segments_mp3, get_duration, get_size, add_image, get_image
 )
 
 
 FILE1 = os.path.join(os.path.dirname(__file__), 'pizza1.mp3')
 COMMERCIAL = os.path.join(os.path.dirname(__file__), 'commercial.mp3')
 FILE2 = os.path.join(os.path.dirname(__file__), 'pizza2.mp3')
+IMAGE = os.path.join(os.path.dirname(__file__), 'pizza.jpg')
+PIZZA_POD = os.path.join(os.path.dirname(__file__), 'pizza_pod.mp3')
 
 
 class TestFFmpegUtil(unittest.TestCase):
@@ -48,3 +50,13 @@ class TestFFmpegUtil(unittest.TestCase):
         self.assertGreaterEqual(get_duration(output_file),
                                 expected_duration - 1)
         self.assertLessEqual(get_duration(output_file), expected_duration + 1)
+
+    def test_get_image(self):
+        self.assertIsNone(get_image(FILE1))
+        self.assertIsNotNone(get_image(PIZZA_POD))
+
+    def test_add_image(self):
+        self.assertIsNone(get_image(FILE1))
+        added = add_image(FILE1, IMAGE)
+        print(f'Added: {added}')
+        self.assertIsNotNone(get_image(added))
