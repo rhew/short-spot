@@ -62,8 +62,20 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     image_file = get_watermarked(get_image(audio_file))
     prev_commercial_end = 0
     for commercial in commercial_data:
-        commercial_start = transcript.segments[commercial['start_line']].start
-        commercial_end = transcript.segments[commercial['end_line']].end
+        try:
+            commercial_start = transcript.segments[commercial['start_line']].start
+            commercial_end = transcript.segments[commercial['end_line']].end
+        except IndexError:
+            print('Oh snap, IndexError. Let''s sneak up on it.')
+            print(f'Commercial: {commercial}.')
+            print(f'Start line: {commercial["start_line"]}.')
+            print(f'End line: {commercial["end_line"]}.')
+            print(f'Number of segments: {len(transcript.segments)}.')
+            print(f'Segment start line: {transcript.segments[commercial["start_line"]]}.')
+            print(f'Segment end line: {transcript.segments[commercial["end_line"]]}.')
+            print(f'Segment start: {transcript.segments[commercial["start_line"]].start}.')
+            print(f'Segment end: {transcript.segments[commercial["end_line"]].end}.')
+            raise
 
         if commercial_start < prev_commercial_end:
             raise IndexError("List of commercials must be sequential.")
