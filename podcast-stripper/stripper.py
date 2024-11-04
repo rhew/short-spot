@@ -57,6 +57,22 @@ def get_watermarked(image_file):
         return watermarked.name
 
 
+def dump_commercial(commercial):
+    print(f'About this commercial from {commercial["sponsor"]}...')
+    print(f'Commercial: {commercial}.')
+    print(f'Start line: {commercial["start_line"]}.')
+    print(f'End line: {commercial["end_line"]}.')
+
+
+def dump_transcript_at_commercial(transcript, commercial):
+    print(f'About the transcript for this commercial from {commercial["sponsor"]}...')
+    print(f'Number of segments: {len(transcript.segments)}.')
+    print(f'Segment start line: {transcript.segments[commercial["start_line"]]}.')
+    print(f'Segment end line: {transcript.segments[commercial["end_line"]]}.')
+    print(f'Segment start: {transcript.segments[commercial["start_line"]].start}.')
+    print(f'Segment end: {transcript.segments[commercial["end_line"]].end}.')
+
+
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     playlist = Playlist()
     image_file = get_watermarked(get_image(audio_file))
@@ -67,17 +83,14 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
             commercial_end = transcript.segments[commercial['end_line']].end
         except IndexError:
             print('Oh snap, IndexError. Let''s sneak up on it.')
-            print(f'Commercial: {commercial}.')
-            print(f'Start line: {commercial["start_line"]}.')
-            print(f'End line: {commercial["end_line"]}.')
-            print(f'Number of segments: {len(transcript.segments)}.')
-            print(f'Segment start line: {transcript.segments[commercial["start_line"]]}.')
-            print(f'Segment end line: {transcript.segments[commercial["end_line"]]}.')
-            print(f'Segment start: {transcript.segments[commercial["start_line"]].start}.')
-            print(f'Segment end: {transcript.segments[commercial["end_line"]].end}.')
+            dump_commercial(commercial)
+            dump_transcript_at_commercial(transcript, commercial)
             raise
 
         if commercial_start < prev_commercial_end:
+            print('Oh snap, start before end!. Let''s sneak up on it.')
+            dump_commercial(commercial)
+            dump_transcript_at_commercial(transcript, commercial)
             raise IndexError("List of commercials must be sequential.")
 
         print(f"{int(commercial_end - commercial_start)} second message "
