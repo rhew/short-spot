@@ -66,6 +66,38 @@ def get_commercials(client, transcript):
         return json.loads(json_string[:e.pos])
 
 
+def combine_commercial_group(commercial_group):
+    if len(commercial_group) == 1:
+        sponsor = commercial_group[0]['sponsor']
+    elif len(commercial_group) == 2:
+        sponsor = f'{commercial_group[0]["sponsor"]} and {commercial_group[1]["sponsor"]}'
+    else:
+        sponsor = ', '.join([commercial['sponsor'] for commercial in commercial_group[:-1]])
+        sponsor += f', and {commercial_group[-1]["sponsor"]}'
+
+    return {
+        'sponsor': sponsor,
+        'start_line': commercial_group[0]['start_line'],
+        'end_line': commercial_group[-1]['end_line']
+    }
+
+
+def combine_commercials(commercials):
+    commercial_group = []
+    for commercial in commercials:
+        if not commercial_group:
+            commercial_group = [commercial]
+        else:
+            if commercial_group[-1]['end_line'] + 2 >= commercial['start_line']:
+                commercial_group.append(commercial)
+            else:
+                yield combine_commercial_group(commercial_group)
+                commercial_group = [commercial]
+
+    if commercial_group:
+        yield combine_commercial_group(commercial_group)
+
+
 def write_sponsor(client, company, file):
     with client.audio.speech.with_streaming_response.create(
         model="tts-1",

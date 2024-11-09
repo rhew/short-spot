@@ -22,6 +22,7 @@ from ffmpeg_util import (
 from openai_util import (
     get_transcript,
     get_commercials,
+    combine_commercials,
     write_sponsor
 )
 
@@ -131,7 +132,7 @@ def strip(client, path, output):
             reduce_audio_file(path, fp.name)
             transcript = get_transcript(client, fp.name)
             fp.close()
-        commercials = get_commercials(client, transcript)
+        commercials = combine_commercials(get_commercials(client, transcript))
         write_trimmed(client, path, transcript, commercials, output)
     except RateLimitError as error:
         raise error
