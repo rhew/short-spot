@@ -2,6 +2,7 @@ cheat-sheet.md
 secrets.env
 podcast-stripper/venv/
 podcast-stripper/cheat-sheet.sh
+podcast-stripper/version
 podcast-stripper/transcript.pickle
 podcast-stripper/__pycache__/
 podcast-stripper/tests/__pycache__/

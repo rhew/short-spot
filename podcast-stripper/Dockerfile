@@ -18,5 +18,8 @@ RUN pip install audioop-lts; exit 0
 
 ENV PYTHONUNBUFFERED=1
 
+COPY version /version
+RUN export STRIPPER_VERSION=$(cat /version); echo $STRIPPER_VERSION
+
 CMD [ "python", "./stripper.py" ]
 

@@ -143,33 +143,44 @@ def get_stripped_name(path):
         raise ValueError(f'mp3 path already stripped: {path}')
 
     if path.endswith('.mp3'):
-        return f'{path[:-4]}-stripped.mp3'
+        return f'{os.getenv("STRIPPER_VERSION", "vx.x")}-{path[:-4]}-stripped.mp3'
 
     raise ValueError(f'Invalid mp3 path for adding stripped name: {path}')
 
 
-def strip_all(client, directory):
-    print(f'Stripping everything in {directory}')
-    for filename in glob(os.path.join(directory, '*', '*.mp3')):
-        filepath = os.path.join(directory, filename)
+def has_stripped_version(filename, path):
+    if filename.endswith('-stripped.mp3'):
+        return False
 
-        if filepath.endswith('-stripped.mp3'):
+    for candidate in os.listdir(path):
+        if candidate.endswith(filename[:-4] + '-stripped.mp3'):
+            return True
+
+    return False
+
+
+def strip_all(client, scan_directory):
+    print(f'Stripping everything under {scan_directory}/*')
+    for relative_path in glob(os.path.join(scan_directory, '*', '*.mp3')):
+        path = os.path.join(scan_directory, relative_path)
+        directory = os.path.dirname(path)
+        filename = os.path.basename(path)
+
+        if filename.endswith('-stripped.mp3'):
             print(f'ignoring {filename}')
             continue
 
         try:
-            stripped_name = get_stripped_name(filepath)
-
-            if os.path.isfile(stripped_name):
+            if has_stripped_version(filename, directory):
                 print(f'Skipping already stripped file {filename}')
                 continue
         except ValueError as e:
             print(e)
 
         try:
-            strip(client, filepath, stripped_name)
+            strip(client, path, os.path.join(directory, get_stripped_name(filename)))
         except ValueError as e:
-            print(f'Failed to strip {filepath}: {e}')
+            print(f'Failed to strip {filename}: {e}')
 
 
 class EventHandler(pyinotify.ProcessEvent):
@@ -179,8 +190,18 @@ class EventHandler(pyinotify.ProcessEvent):
 
     def process_IN_CREATE(self, event):
         print("Notified of create:", event.pathname)
+        if event.pathname.endswith('-stripped.mp3'):
+            print(f'ignoring {event.pathname}')
+            return
         try:
-            strip(self.client, event.pathname, get_stripped_name(event.pathname))
+            strip(
+                self.client,
+                event.pathname,
+                os.path.join(
+                    os.path.dirname(event.pathname),
+                    get_stripped_name(os.path.basename(event.pathname))
+                )
+            )
         except ValueError as e:
             print(e)
 

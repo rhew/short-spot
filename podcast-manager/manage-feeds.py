@@ -98,10 +98,12 @@ def generate_index(links):
 def has_stripped_version(filename, path):
     if filename.endswith('-stripped.mp3'):
         return False
-    if not os.path.isfile(os.path.join(path, filename[:-4] + '-stripped.mp3')):
-        return False
 
-    return True
+    for candidate in os.listdir(path):
+        if candidate.endswith(filename[:-4] + '-stripped.mp3'):
+            return True
+
+    return False
 
 
 def is_old(filename, since):
