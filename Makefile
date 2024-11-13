@@ -1,6 +1,8 @@
 # source command not available with default shell
 SHELL := /bin/bash
 
+.PHONY: all podcast-stripper-version podcast-stripper podcast-manager rhew.org
+
 all: podcast-stripper podcast-manager rhew.org
 
 podcast-stripper-version:
