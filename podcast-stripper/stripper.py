@@ -157,7 +157,7 @@ def strip_all(client, scan_directory):
             continue
 
         try:
-            if find_stripped_filename(filename, os.listdir(path)):
+            if find_stripped_filename(filename, os.listdir(directory)):
                 print(f'Skipping already stripped file {filename}')
                 continue
         except ValueError as e:
