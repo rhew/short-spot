@@ -5,6 +5,7 @@ ADD podcast-stripper/stripper.py .
 ADD podcast-stripper/ffmpeg_util.py .
 ADD podcast-stripper/openai_util.py .
 ADD podcast-stripper/playlist.py .
+ADD podcast-stripper/checkmark.png .
 ADD common/file_util.py .
 ADD podcast-stripper/requirements.txt .
 
