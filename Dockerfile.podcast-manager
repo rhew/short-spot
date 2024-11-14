@@ -1,9 +1,10 @@
 FROM python:3
 
 WORKDIR /usr/src/app
-ADD manage-feeds.py .
-ADD config.py .
-ADD requirements.txt .
+ADD podcast-manager/manage-feeds.py .
+ADD podcast-manager/config.py .
+ADD common/file_util.py .
+ADD podcast-manager/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 

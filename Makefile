@@ -1,17 +1,17 @@
 # source command not available with default shell
 SHELL := /bin/bash
 
-.PHONY: all podcast-stripper-version podcast-stripper podcast-manager rhew.org
+.PHONY: all version podcast-stripper podcast-manager rhew.org
 
 all: podcast-stripper podcast-manager rhew.org
 
-podcast-stripper-version:
-	@echo $(shell git describe --always) > ./podcast-stripper/version
+version:
+	@echo $(shell git describe --always) > version
 
 podcast-manager:
 	docker-compose build manager
 
-podcast-stripper: podcast-stripper-version
+podcast-stripper: version
 	docker-compose build stripper
 
 rhew.org:

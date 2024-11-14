@@ -12,7 +12,9 @@ services:
     volumes:
       - podcasts:/usr/share/caddy/podcasts
   stripper:
-    build: ./podcast-stripper
+    build:
+      dockerfile: ./Dockerfile.podcast-stripper
+      context: .
     image: stripper
     container_name: stripper
     command: [ "python", "stripper.py", "/var/podcasts", "--monitor" ]
@@ -23,7 +25,9 @@ services:
     volumes:
       - podcasts:/var/podcasts
   manager:
-    build: ./podcast-manager
+    build:
+      dockerfile: ./Dockerfile.podcast-manager
+      context: .
     image: manager
     container_name: manager
     command: [ "python", "manage-feeds.py", "/var/podcasts" ]
