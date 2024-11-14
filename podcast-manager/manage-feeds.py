@@ -16,12 +16,13 @@ except ImportError:
 
 from config import feeds
 
+PODCAST_ROOT = 'https://rhew.org/podcasts'
+
 
 def create_podcast_feed(parsed_input_feed, podcast_name):
     output = FeedGenerator()
     output.title(parsed_input_feed.feed.title)
-    output.link(href=f'https://rhew.org/podcasts/{podcast_name}.xml',
-                rel='self')
+    output.link(href=f'{PODCAST_ROOT}/{podcast_name}.xml', rel='self')
     output.description(parsed_input_feed.feed.description)
 
     output.load_extension('podcast')
@@ -154,9 +155,8 @@ def main(path, interval, download):
                 )
                 episode_path = os.path.join(feed_directory, episode_filename)
                 episode_path_stripped = os.path.join(feed_directory, episode_filename_stripped)
-                episode_url = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename}'
-                episode_url_stripped = 'https://rhew.org/podcasts/'
-                + f'{feed["name"]}/{episode_filename_stripped}'
+                episode_url = f'{PODCAST_ROOT}/{feed["name"]}/{episode_filename}'
+                episode_url_stripped = f'{PODCAST_ROOT}/{feed["name"]}/{episode_filename_stripped}'
 
                 for link in [link
                              for link in input_episode.links
@@ -175,7 +175,7 @@ def main(path, interval, download):
             output.rss_file(os.path.join(path, f'{feed["name"]}.xml'))
             index_html_links.append(
                 (feed['name'],
-                 f'https://rhew.org/podcasts/{feed["name"]}.xml'))
+                 f'{PODCAST_ROOT}/{feed["name"]}.xml'))
 
         with open(os.path.join(path, "index.html"), "w") as index_html:
             index_html.write(generate_index(index_html_links))
