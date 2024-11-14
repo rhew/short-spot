@@ -3,7 +3,7 @@ import unittest
 from file_util import (
     build_filename,
     get_stripped_name,
-    is_stripped_filename,
+    matches_stripped_filename,
     find_stripped_filename,
     get_version_number,
     get_without_version_number
@@ -63,8 +63,8 @@ class TestFileUtil(unittest.TestCase):
             get_stripped_name('v9.9', 'foo.baz')
 
     def test_is_stripped_filename(self):
-        self.assertTrue(is_stripped_filename('foo.mp3', 'foo-stripped.mp3'))
-        self.assertTrue(is_stripped_filename('foo/bar/baz.mp3', 'foo/bar/baz-stripped.mp3'))
+        self.assertTrue(matches_stripped_filename('foo.mp3', 'foo-stripped.mp3'))
+        self.assertTrue(matches_stripped_filename('foo/bar/baz.mp3', 'foo/bar/baz-stripped.mp3'))
 
     def test_find_stripped_filename(self):
         self.assertEqual(

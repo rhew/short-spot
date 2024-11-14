@@ -23,7 +23,11 @@ def get_stripped_name(version, filename):
     raise ValueError(f"Invalid mp3 filename for adding stripped name: {filename}")
 
 
-def is_stripped_filename(filename, stripped_candidate):
+def is_stripped_filename(filename):
+    return filename.split('.')[0].endswith("-stripped")
+
+
+def matches_stripped_filename(filename, stripped_candidate):
     return stripped_candidate.split('.')[0].endswith(filename.split('.')[0] + "-stripped")
 
 
