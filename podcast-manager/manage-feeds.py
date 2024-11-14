@@ -9,7 +9,10 @@ from feedgen.feed import FeedGenerator
 import feedparser
 import requests
 
-from ..common import get_filename, has_stripped_version, is_old
+try:
+    from ..common import get_filename, has_stripped_version, is_old
+except ImportError:
+    from file_util import get_filename, has_stripped_version, is_old
 
 from config import feeds
 

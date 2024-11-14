@@ -10,7 +10,10 @@ import click
 from openai import OpenAI, RateLimitError
 import pyinotify
 
-from ..common import get_stripped_name, has_stripped_version
+try:
+    from ..common import get_stripped_name, has_stripped_version
+except ImportError:
+    from file_util import get_stripped_name, has_stripped_version
 
 from ffmpeg_util import (
     seconds_to_ffmpeg_format,
