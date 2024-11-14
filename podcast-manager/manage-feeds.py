@@ -10,9 +10,9 @@ import feedparser
 import requests
 
 try:
-    from ..common import build_filename, find_stripped_filename, is_old
+    from ..common import build_filename, find_stripped_filename, is_old, get_version_number
 except ImportError:
-    from file_util import build_filename, find_stripped_filename, is_old
+    from file_util import build_filename, find_stripped_filename, is_old, get_version_number
 
 from config import feeds
 
