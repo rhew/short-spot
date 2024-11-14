@@ -16,3 +16,12 @@ podcast-stripper: podcast-stripper-version
 
 rhew.org:
 	docker-compose build rhew.org
+
+STRIPPER_TESTS := $(shell cd podcast-stripper && find ./tests -name 'test_*.py' -not -name 'test_openai_util.py')
+
+tests:
+	cd common && python3 -m unittest discover
+	cd podcast-stripper && source venv/bin/activate && python -m unittest $(STRIPPER_TESTS)
+
+tests_that_cost_money:
+	cd podcast-stripper && source venv/bin/activate && OPEN_AI_KEY="$(pass openai.com/narrator)"python -m unittest tests/test_openai_util.py

@@ -10,6 +10,8 @@ import click
 from openai import OpenAI, RateLimitError
 import pyinotify
 
+from ..common import get_stripped_name, has_stripped_version
+
 from ffmpeg_util import (
     seconds_to_ffmpeg_format,
     reduce_audio_file,
@@ -27,6 +29,8 @@ from openai_util import (
 )
 
 from playlist import Playlist
+
+STRIPPER_VERSION = os.getenv("STRIPPER_VERSION", "vx.x")
 
 
 def get_watermarked(image_file):
@@ -138,27 +142,6 @@ def strip(client, path, output):
         raise error
 
 
-def get_stripped_name(path):
-    if path.endswith('-stripped.mp3'):
-        raise ValueError(f'mp3 path already stripped: {path}')
-
-    if path.endswith('.mp3'):
-        return f'{os.getenv("STRIPPER_VERSION", "vx.x")}-{path[:-4]}-stripped.mp3'
-
-    raise ValueError(f'Invalid mp3 path for adding stripped name: {path}')
-
-
-def has_stripped_version(filename, path):
-    if filename.endswith('-stripped.mp3'):
-        return False
-
-    for candidate in os.listdir(path):
-        if candidate.endswith(filename[:-4] + '-stripped.mp3'):
-            return True
-
-    return False
-
-
 def strip_all(client, scan_directory):
     print(f'Stripping everything under {scan_directory}/*')
     for relative_path in glob(os.path.join(scan_directory, '*', '*.mp3')):
@@ -171,14 +154,21 @@ def strip_all(client, scan_directory):
             continue
 
         try:
-            if has_stripped_version(filename, directory):
+            if has_stripped_version(filename, os.listdir(path)):
                 print(f'Skipping already stripped file {filename}')
                 continue
         except ValueError as e:
             print(e)
 
         try:
-            strip(client, path, os.path.join(directory, get_stripped_name(filename)))
+            strip(
+                client,
+                path,
+                os.path.join(
+                    directory,
+                    get_stripped_name(STRIPPER_VERSION, filename)
+                )
+            )
         except ValueError as e:
             print(f'Failed to strip {filename}: {e}')
 
@@ -199,7 +189,7 @@ class EventHandler(pyinotify.ProcessEvent):
                 event.pathname,
                 os.path.join(
                     os.path.dirname(event.pathname),
-                    get_stripped_name(os.path.basename(event.pathname))
+                    get_stripped_name(STRIPPER_VERSION, os.path.basename(event.pathname))
                 )
             )
         except ValueError as e:

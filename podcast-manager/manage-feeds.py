@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import datetime
-import hashlib
 import os
 from time import sleep
 
@@ -10,15 +9,9 @@ from feedgen.feed import FeedGenerator
 import feedparser
 import requests
 
+from ..common import get_filename, has_stripped_version, is_old
+
 from config import feeds
-
-
-def get_filename(year, month, day, feed_name, id, stripped=False):
-    return (f'{year}-{month:02}-{day:02}'
-            + f'-{feed_name}'
-            + f'-{hashlib.sha256(id.encode()).hexdigest()}'
-            + ('-stripped' if stripped else '')
-            + '.mp3')
 
 
 def create_podcast_feed(parsed_input_feed, podcast_name):
@@ -95,30 +88,6 @@ def generate_index(links):
     return index_html
 
 
-def has_stripped_version(filename, path):
-    if filename.endswith('-stripped.mp3'):
-        return False
-
-    for candidate in os.listdir(path):
-        if candidate.endswith(filename[:-4] + '-stripped.mp3'):
-            return True
-
-    return False
-
-
-def is_old(filename, since):
-    published_str = '-'.join(filename.split('-')[:3])
-    try:
-        published = datetime.datetime.strptime(published_str, "%Y-%m-%d")
-    except ValueError:
-        return False
-
-    if published >= since:
-        return False
-
-    return True
-
-
 def purge_podcast_files(path):
     for feed in feeds:
         feed_directory = os.path.join(path, feed['name'])
@@ -130,7 +99,7 @@ def purge_podcast_files(path):
         for filename in os.listdir(feed_directory):
             if not filename.endswith('.mp3'):
                 continue
-            if has_stripped_version(filename, feed_directory):
+            if has_stripped_version(filename, os.listdir(feed_directory)):
                 print(f'Deleting {filename} with stripped version.')
                 os.remove(os.path.join(feed_directory, filename))
                 continue
