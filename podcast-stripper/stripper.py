@@ -33,7 +33,8 @@ from openai_util import (
 
 from playlist import Playlist
 
-VERSION = os.getenv("VERSION", "vx.x")
+with open('version') as version_file:
+    VERSION = version_file.read()
 
 
 def get_watermarked(image_file):
