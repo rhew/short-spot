@@ -11,9 +11,9 @@ from openai import OpenAI, RateLimitError
 import pyinotify
 
 try:
-    from ..common import get_stripped_name, find_stripped_filename
+    from ..common import get_stripped_name, find_stripped_filename, is_stripped_filename
 except ImportError:
-    from file_util import get_stripped_name, find_stripped_filename
+    from file_util import get_stripped_name, find_stripped_filename, is_stripped_filename
 
 from ffmpeg_util import (
     seconds_to_ffmpeg_format,
@@ -153,7 +153,7 @@ def strip_all(client, scan_directory):
         directory = os.path.dirname(path)
         filename = os.path.basename(path)
 
-        if filename.endswith('-stripped.mp3'):
+        if is_stripped_filename(filename):
             print(f'ignoring {filename}')
             continue
 
