@@ -156,7 +156,7 @@ def main(path, interval, download):
                 episode_path_stripped = os.path.join(feed_directory, episode_filename_stripped)
                 episode_url = f'https://rhew.org/podcasts/{feed["name"]}/{episode_filename}'
                 episode_url_stripped = 'https://rhew.org/podcasts/'
-                + '{feed["name"]}/{episode_filename_stripped}'
+                + f'{feed["name"]}/{episode_filename_stripped}'
 
                 for link in [link
                              for link in input_episode.links
