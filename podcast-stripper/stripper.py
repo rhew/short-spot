@@ -11,9 +11,9 @@ from openai import OpenAI, RateLimitError
 import pyinotify
 
 try:
-    from ..common import get_stripped_name, has_stripped_version
+    from ..common import get_stripped_name, find_stripped_filename
 except ImportError:
-    from file_util import get_stripped_name, has_stripped_version
+    from file_util import get_stripped_name, find_stripped_filename
 
 from ffmpeg_util import (
     seconds_to_ffmpeg_format,
@@ -33,7 +33,7 @@ from openai_util import (
 
 from playlist import Playlist
 
-STRIPPER_VERSION = os.getenv("STRIPPER_VERSION", "vx.x")
+VERSION = os.getenv("VERSION", "vx.x")
 
 
 def get_watermarked(image_file):
@@ -157,7 +157,7 @@ def strip_all(client, scan_directory):
             continue
 
         try:
-            if has_stripped_version(filename, os.listdir(path)):
+            if find_stripped_filename(filename, os.listdir(path)):
                 print(f'Skipping already stripped file {filename}')
                 continue
         except ValueError as e:
@@ -169,7 +169,7 @@ def strip_all(client, scan_directory):
                 path,
                 os.path.join(
                     directory,
-                    get_stripped_name(STRIPPER_VERSION, filename)
+                    get_stripped_name(VERSION, filename)
                 )
             )
         except ValueError as e:
@@ -192,7 +192,7 @@ class EventHandler(pyinotify.ProcessEvent):
                 event.pathname,
                 os.path.join(
                     os.path.dirname(event.pathname),
-                    get_stripped_name(STRIPPER_VERSION, os.path.basename(event.pathname))
+                    get_stripped_name(VERSION, os.path.basename(event.pathname))
                 )
             )
         except ValueError as e:

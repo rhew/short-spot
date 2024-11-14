@@ -10,9 +10,9 @@ import feedparser
 import requests
 
 try:
-    from ..common import get_filename, has_stripped_version, is_old
+    from ..common import build_filename, find_stripped_filename, is_old
 except ImportError:
-    from file_util import get_filename, has_stripped_version, is_old
+    from file_util import build_filename, find_stripped_filename, is_old
 
 from config import feeds
 
@@ -55,10 +55,13 @@ def download_episode(url, output_path):
         print(f"Failed to download {output_path}: {e}")
 
 
-def add_episode(output, input_episode, episode_url):
+def add_episode(output, input_episode, episode_url, stripper_version=None):
     output_episode = output.add_entry()
     output_episode.id(input_episode.id)
-    output_episode.title(input_episode.title)
+    if stripper_version:
+        output_episode.title(f'{input_episode.title} (stripped {stripper_version})')
+    else:
+        output_episode.title(input_episode.title)
     output_episode.description(input_episode.description)
     output_episode.enclosure(episode_url, 0, 'audio/mpeg')
     output_episode.published(input_episode.published)
@@ -103,7 +106,7 @@ def purge_podcast_files(path):
         for filename in os.listdir(feed_directory):
             if not filename.endswith('.mp3'):
                 continue
-            if has_stripped_version(filename, os.listdir(feed_directory)):
+            if find_stripped_filename(filename, os.listdir(feed_directory)):
                 print(f'Deleting {filename} with stripped version.')
                 os.remove(os.path.join(feed_directory, filename))
                 continue
@@ -138,39 +141,40 @@ def main(path, interval, download):
                 if 'since' in feed and published < datetime.datetime.strptime(
                         feed['since'], "%Y-%m-%d"):
                     continue
-                episode_filename = get_filename(
+                episode_filename = build_filename(
                     input_episode['published_parsed'][0],
                     input_episode['published_parsed'][1],
                     input_episode['published_parsed'][2],
                     feed['name'],
                     input_episode.id
                 )
-                episode_filename_stripped = get_filename(
-                    input_episode['published_parsed'][0],
-                    input_episode['published_parsed'][1],
-                    input_episode['published_parsed'][2],
-                    feed['name'],
-                    input_episode.id,
-                    stripped=True
-                )
-                episode_path = os.path.join(feed_directory, episode_filename)
-                episode_path_stripped = os.path.join(feed_directory, episode_filename_stripped)
-                episode_url = f'{PODCAST_ROOT}/{feed["name"]}/{episode_filename}'
-                episode_url_stripped = f'{PODCAST_ROOT}/{feed["name"]}/{episode_filename_stripped}'
+                feed_files = os.listdir(feed_directory)
 
                 for link in [link
                              for link in input_episode.links
                              if link['type'] == 'audio/mpeg']:
 
-                    if os.path.isfile(episode_path_stripped):
-                        add_episode(output, input_episode, episode_url_stripped)
+                    stripped_filename = find_stripped_filename(episode_filename, feed_files)
+                    if stripped_filename:
+                        add_episode(
+                            output,
+                            input_episode,
+                            f'{PODCAST_ROOT}/{feed["name"]}/{stripped_filename}',
+                            stripper_version=get_version_number(stripped_filename)
+                        )
                     else:
-                        if not os.path.isfile(episode_path):
+                        if episode_filename not in feed_files:
                             print(f"Downloading {episode_filename}.")
                             if download:
-                                download_episode(link['href'], episode_path)
-
-                        add_episode(output, input_episode, episode_url)
+                                download_episode(
+                                    link['href'],
+                                    os.path.join(feed_directory, episode_filename)
+                                )
+                        add_episode(
+                            output,
+                            input_episode,
+                            f'{PODCAST_ROOT}/{feed["name"]}/{episode_filename}'
+                        )
 
             output.rss_file(os.path.join(path, f'{feed["name"]}.xml'))
             index_html_links.append(

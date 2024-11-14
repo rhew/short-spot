@@ -3,7 +3,7 @@ import hashlib
 import os
 
 
-def get_filename(year, month, day, feed_name, id, stripped=False):
+def build_filename(year, month, day, feed_name, id, stripped=False):
     return (
         f"{year}-{month:02}-{day:02}"
         + f"-{feed_name}"
@@ -23,28 +23,36 @@ def get_stripped_name(version, filename):
     raise ValueError(f"Invalid mp3 filename for adding stripped name: {filename}")
 
 
-def is_stripped_version(filename, stripped_candidate):
+def is_stripped_filename(filename, stripped_candidate):
     return stripped_candidate.split('.')[0].endswith(filename.split('.')[0] + "-stripped")
+
+
+def get_version_number(path):
+    directory, filename = os.path.split(path)
+    parts = filename.split('.')
+    if len(parts) < 3:
+        return None
+    return '.'.join(parts[1:-1])
 
 
 def get_without_version_number(path):
     directory, filename = os.path.split(path)
-    parts = filename.split(".")
+    parts = filename.split('.')
     return os.path.join(directory, f'{parts[0]}.{parts[-1]}')
 
 
-def has_stripped_version(filename, candidates):
+def find_stripped_filename(filename, candidates):
     if filename.endswith("-stripped.mp3"):
-        return False
+        return None
 
     versionless_candidates = [get_without_version_number(candidate) for candidate in candidates]
 
     versionless_filename = get_without_version_number(filename)
-    for candidate in versionless_candidates:
-        if candidate.endswith(versionless_filename[:-4] + "-stripped.mp3"):
-            return True
+    for index, versionless_candidate in enumerate(versionless_candidates):
+        if versionless_candidate.endswith(versionless_filename[:-4] + '-stripped.mp3'):
+            return candidates[index]
 
-    return False
+    return None
 
 
 def is_old(filename, since):
