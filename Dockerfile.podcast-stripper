@@ -20,7 +20,7 @@ RUN pip install audioop-lts; exit 0
 
 ENV PYTHONUNBUFFERED=1
 
-COPY version /version
+COPY version .
 
 CMD [ "python", "./stripper.py" ]
 
