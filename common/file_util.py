@@ -71,3 +71,17 @@ def is_old(filename, since):
         return False
 
     return True
+
+
+def get_day(path):
+    directory, filename = os.path.split(path)
+    parts = filename.split('-')
+    return datetime.datetime(
+            year=int(parts[0]),
+            month=int(parts[1]),
+            day=int(parts[2])
+    )
+
+
+def oldest_first(paths):
+    return sorted(paths, key=get_day)

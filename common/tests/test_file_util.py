@@ -1,3 +1,4 @@
+import datetime
 import unittest
 
 from file_util import (
@@ -6,7 +7,9 @@ from file_util import (
     matches_stripped_filename,
     find_stripped_filename,
     get_version_number,
-    get_without_version_number
+    get_without_version_number,
+    get_day,
+    oldest_first
 )
 
 ENCODED_ID = '6ca13d52ca70c883e0f0bb101e425a89e8624de51db2d2392593af6a84118090'
@@ -96,4 +99,42 @@ class TestFileUtil(unittest.TestCase):
                 '2022-01-01-name-abc123.mp3',
                 ['2022-01-01-name.mp3']
             )
+        )
+
+    def test_get_day(self):
+        self.assertEqual(
+            get_day('2022-01-01-name.mp3'),
+            datetime.datetime(year=2022, month=1, day=1)
+        )
+
+    def test_oldest_first(self):
+        self.assertEqual(
+            oldest_first(['2022-01-01-name.mp3', '2022-01-02-name.mp3']),
+            ['2022-01-01-name.mp3', '2022-01-02-name.mp3']
+        )
+
+        self.assertEqual(
+            oldest_first([
+                '2022-01-02-name.mp3',
+                '2022-01-03-name.mp3',
+                '2022-01-01-name.mp3'
+            ]),
+            [
+                '2022-01-01-name.mp3',
+                '2022-01-02-name.mp3',
+                '2022-01-03-name.mp3'
+            ]
+        )
+        # test with paths with directories
+        self.assertEqual(
+            oldest_first([
+                '/1/1/1/1/2022-01-02-name.py',
+                '/2/2/2/2/2022-01-03-name.py',
+                '/3/3/3/3/2022-01-01-name.py'
+            ]),
+            [
+                '/3/3/3/3/2022-01-01-name.py',
+                '/1/1/1/1/2022-01-02-name.py',
+                '/2/2/2/2/2022-01-03-name.py'
+            ]
         )

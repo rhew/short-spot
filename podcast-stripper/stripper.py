@@ -11,9 +11,19 @@ from openai import OpenAI, RateLimitError
 import pyinotify
 
 try:
-    from ..common import get_stripped_name, find_stripped_filename, is_stripped_filename
+    from ..common import (
+        get_stripped_name,
+        find_stripped_filename,
+        is_stripped_filename,
+        oldest_first
+    )
 except ImportError:
-    from file_util import get_stripped_name, find_stripped_filename, is_stripped_filename
+    from file_util import (
+        get_stripped_name,
+        find_stripped_filename,
+        is_stripped_filename,
+        oldest_first
+    )
 
 from ffmpeg_util import (
     seconds_to_ffmpeg_format,
@@ -148,7 +158,7 @@ def strip(client, path, output):
 
 def strip_all(client, scan_directory):
     print(f'Stripping everything under {scan_directory}/*')
-    for relative_path in glob(os.path.join(scan_directory, '*', '*.mp3')):
+    for relative_path in oldest_first(glob(os.path.join(scan_directory, '*', '*.mp3'))):
         path = os.path.join(scan_directory, relative_path)
         directory = os.path.dirname(path)
         filename = os.path.basename(path)
