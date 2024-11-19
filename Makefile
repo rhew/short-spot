@@ -17,6 +17,9 @@ podcast-stripper: version
 rhew.org:
 	docker-compose build rhew.org
 
+rhew.org-local:
+	docker-compose -f compose.yml -f compose.local.yml build rhew.org
+
 STRIPPER_TESTS := $(shell cd podcast-stripper && find ./tests -name 'test_*.py' -not -name 'test_openai_util.py')
 
 tests:

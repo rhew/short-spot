@@ -1,6 +1,8 @@
 services:
   rhew.org:
-    build: .
+    build:
+      dockerfile: ./Dockerfile.rhew.org
+      context: .
     container_name: rhew.org
     image: rhew.org
     ports: 
