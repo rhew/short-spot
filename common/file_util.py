@@ -7,7 +7,7 @@ def build_filename(year, month, day, feed_name, id, stripped=False):
     return (
         f"{year}-{month:02}-{day:02}"
         + f"-{feed_name}"
-        + f"-{hashlib.sha256(id.encode()).hexdigest()}"
+        + f"-{hashlib.sha256(id.encode()).hexdigest()[:8]}"
         + ("-stripped" if stripped else "")
         + ".mp3"
     )
