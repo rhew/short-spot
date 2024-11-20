@@ -43,6 +43,8 @@ from openai_util import (
 
 from playlist import Playlist
 
+MAX_PODCAST_LENGTH = 70*60
+
 with open('version') as version_file:
     VERSION = version_file.read().strip()
 
@@ -141,9 +143,10 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
 
 def strip(client, path, output):
     print(f'Starting {os.path.basename(path)} -> {os.path.basename(output)}')
-    MAX_PODCAST_LENGTH = 60*60
-    if get_duration(path) > MAX_PODCAST_LENGTH:
-        print(f'Skipping. {os.path.basename(path)} is longer than {MAX_PODCAST_LENGTH} seconds.')
+    original_duration = get_duration(path)
+    if original_duration > MAX_PODCAST_LENGTH:
+        print(f'Skipping. {os.path.basename(path)} is {original_duration} seconds'
+              f', which exceeds our limit of {MAX_PODCAST_LENGTH} seconds.')
         return
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
