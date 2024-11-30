@@ -1,5 +1,6 @@
 secrets.env
 version
+todo.md
 podcast-stripper/transcript.pickle
 podcast-manager/podcasts/
 podcast-manager/cheat-sheet.md
