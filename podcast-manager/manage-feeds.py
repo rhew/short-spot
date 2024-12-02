@@ -122,6 +122,7 @@ def purge_podcast_files(path):
 @click.option('--download/--no-download', is_flag=True, envvar='DOWNLOAD', default=True,
               help='Actually download episodes.')
 def main(path, podcast_root, interval, download):
+    print(f'Publishing podcasts from {path} under {podcast_root} every {interval} seconds.')
     while True:
         purge_podcast_files(path)
         index_html_links = []
