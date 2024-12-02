@@ -1,24 +1,18 @@
 # source command not available with default shell
 SHELL := /bin/bash
 
-.PHONY: all version podcast-stripper podcast-manager rhew.org
+.PHONY: all version stripper manager
 
-all: podcast-stripper podcast-manager rhew.org
+all: stripper manager
 
 version:
 	@echo $(shell git describe --always) > version
 
-podcast-manager:
-	docker-compose build manager
+manager:
+	docker build -t manager -f ./Dockerfile.podcast-manager .
 
-podcast-stripper: version
-	docker-compose build stripper
-
-rhew.org:
-	docker-compose build rhew.org
-
-rhew.org-local:
-	docker-compose -f compose.yml -f compose.local.yml build rhew.org
+stripper: version
+	docker build -t stripper -f ./Dockerfile.podcast-stripper .
 
 STRIPPER_TESTS := $(shell cd podcast-stripper && find ./tests -name 'test_*.py' -not -name 'test_openai_util.py')
 

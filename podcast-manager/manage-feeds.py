@@ -16,13 +16,11 @@ except ImportError:
 
 from config import feeds
 
-PODCAST_ROOT = 'https://rhew.org/podcasts'
 
-
-def create_podcast_feed(parsed_input_feed, podcast_name):
+def create_podcast_feed(podcast_root, parsed_input_feed, podcast_name):
     output = FeedGenerator()
     output.title(parsed_input_feed.feed.title)
-    output.link(href=f'{PODCAST_ROOT}/{podcast_name}.xml', rel='self')
+    output.link(href=f'{podcast_root}/{podcast_name}.xml', rel='self')
     output.description(parsed_input_feed.feed.description)
 
     output.load_extension('podcast')
@@ -34,9 +32,9 @@ def create_podcast_feed(parsed_input_feed, podcast_name):
     return output
 
 
-def download_episode(url, output_path):
+def download_episode(podcast_root, url, output_path):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; PodcastDownloader/1.0; +http://rhew.org)'
+        'User-Agent': f'Mozilla/5.0 (compatible; PodcastDownloader/1.0; +{podcast_root})'
     }
 
     try:
@@ -117,18 +115,20 @@ def purge_podcast_files(path):
 
 @click.command()
 @click.argument('path', default='./podcasts/')
+@click.option('--podcast-root', envvar='PODCAST_ROOT',
+              help='Where podcasts will be published. Ex: https://www.example.com/podcasts')
 @click.option('--interval', envvar='INTERVAL', default='0',
               help='Manager will run again after this time.')
 @click.option('--download/--no-download', is_flag=True, envvar='DOWNLOAD', default=True,
               help='Actually download episodes.')
-def main(path, interval, download):
+def main(path, podcast_root, interval, download):
     while True:
         purge_podcast_files(path)
         index_html_links = []
         for feed in feeds:
 
             input = feedparser.parse(feed['url'])
-            output = create_podcast_feed(input, feed['name'])
+            output = create_podcast_feed(podcast_root, input, feed['name'])
 
             feed_directory = os.path.join(path, feed['name'])
             os.makedirs(feed_directory, exist_ok=True)
@@ -159,7 +159,7 @@ def main(path, interval, download):
                         add_episode(
                             output,
                             input_episode,
-                            f'{PODCAST_ROOT}/{feed["name"]}/{stripped_filename}',
+                            f'{podcast_root}/{feed["name"]}/{stripped_filename}',
                             stripper_version=get_version_number(stripped_filename)
                         )
                     else:
@@ -167,19 +167,20 @@ def main(path, interval, download):
                             print(f"Downloading {episode_filename}.")
                             if download:
                                 download_episode(
+                                    podcast_root,
                                     link['href'],
                                     os.path.join(feed_directory, episode_filename)
                                 )
                         add_episode(
                             output,
                             input_episode,
-                            f'{PODCAST_ROOT}/{feed["name"]}/{episode_filename}'
+                            f'{podcast_root}/{feed["name"]}/{episode_filename}'
                         )
 
             output.rss_file(os.path.join(path, f'{feed["name"]}.xml'))
             index_html_links.append(
                 (feed['name'],
-                 f'{PODCAST_ROOT}/{feed["name"]}.xml'))
+                 f'{podcast_root}/{feed["name"]}.xml'))
 
         with open(os.path.join(path, "index.html"), "w") as index_html:
             index_html.write(generate_index(index_html_links))

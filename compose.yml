@@ -1,18 +1,4 @@
 services:
-  rhew.org:
-    build:
-      dockerfile: ./Dockerfile.rhew.org
-      context: .
-    container_name: rhew.org
-    image: rhew.org
-    ports: 
-      - 443:443
-    restart: unless-stopped    
-    # Contains PODCAST_USER and  PODCAST_PASSWORD_HASH
-    env_file:
-      - secrets.env
-    volumes:
-      - podcasts:/usr/share/caddy/podcasts
   stripper:
     build:
       dockerfile: ./Dockerfile.podcast-stripper
@@ -33,11 +19,13 @@ services:
     image: manager
     container_name: manager
     command: [ "python", "manage-feeds.py", "/var/podcasts" ]
-    restart: unless-stopped    
+    restart: "no"
     volumes:
       - podcasts:/var/podcasts
+      - ./podcast-manager/config_local.py:/usr/src/app/config.py
     environment:
-      INTERVAL: '3600'
+      INTERVAL: '10'
+      PODCAST_ROOT: 'https://rhew.org/podcasts'
 
 volumes:
   podcasts:
