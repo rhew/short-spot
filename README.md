@@ -6,9 +6,8 @@ It’s not about silencing the ads; it’s about making them timeless.
 ## Get
 
 ```
-ssh rhew.org
+git clone https://github.com/rhew/short-spot.git
 cd short-spot
-git pull origin main
 ```
 
 ## Podcast stripper secrets
@@ -18,14 +17,12 @@ Add "`OPEN_AI_KEY`" to `podcast-stripper/secrets.env`.
 ## Build
 
 ```
-make podcast-stripper
-make podcast-manager
+make
 ```
 
 ## Deploy
 
 ```
-cd ../rhew.org
 docker-compose up manager stripper -d
 ```
 
