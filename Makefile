@@ -9,10 +9,19 @@ version:
 	@echo $(shell git describe --always) > version
 
 manager:
-	docker build -t manager -f ./Dockerfile.podcast-manager .
+	docker-compose build manager
 
 stripper: version
-	docker build -t stripper -f ./Dockerfile.podcast-stripper .
+	docker-compose build stripper
+
+run-local-manager:
+	docker-compose -f compose.yml -f compose.local.yml up manager
+
+run-local-stripper:
+	docker-compose -f compose.yml -f compose.local.yml up stripper
+
+run-local:
+	docker-compose -f compose.yml -f compose.local.yml up
 
 STRIPPER_TESTS := $(shell cd podcast-stripper && find ./tests -name 'test_*.py' -not -name 'test_openai_util.py')
 

@@ -22,7 +22,6 @@ services:
     restart: "no"
     volumes:
       - podcasts:/var/podcasts
-      - ./podcast-manager/config_local.py:/usr/src/app/config.py
     environment:
       INTERVAL: '10'
       PODCAST_ROOT: 'https://rhew.org/podcasts'
