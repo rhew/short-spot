@@ -12,6 +12,7 @@ def get_transcript(client, filename):
         model="whisper-1",
         prompt="",
         response_format="verbose_json",
+        timestamp_granularities=["word"],
         file=open(filename, "rb")
     )
     return transcript
