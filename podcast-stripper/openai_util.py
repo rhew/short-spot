@@ -102,7 +102,7 @@ def combine_commercials(commercials):
 def write_sponsor(client, company, file):
     with client.audio.speech.with_streaming_response.create(
         model="tts-1",
-        voice="onyx",
+        voice="shimmer",
         input=f"This podcast is sponsored by, {company}.",
         response_format='wav'
     ) as response:
