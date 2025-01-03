@@ -138,7 +138,7 @@ def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     add_image(output_file, image_file)
 
     print(f'Reduced by {get_duration(audio_file) - get_duration(output_file)} seconds.')
-    time.sleep(600)
+    time.sleep(30)
 
 
 def strip(client, path, output):
