@@ -88,7 +88,7 @@ def combine_commercials(commercials):
         if not commercial_group:
             commercial_group = [commercial]
         else:
-            if commercial_group[-1]['end_line'] + 2 >= commercial['start_line']:
+            if commercial_group[-1]['end_line'] + 3 >= commercial['start_line']:
                 commercial_group.append(commercial)
             else:
                 yield combine_commercial_group(commercial_group)
