@@ -182,7 +182,8 @@ def strip(client, path, output):
             transcript = get_transcript(client, fp.name)
             fp.close()
         commercials = combine_commercials(get_commercials(client, transcript))
-        print_transcript_at_commercial(transcript, commercials)
+        for commercial in commercials:
+            print_transcript_at_commercial(transcript, commercial)
         write_trimmed(client, path, transcript, commercials, output)
     except RateLimitError as error:
         raise error
