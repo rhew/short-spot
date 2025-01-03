@@ -94,6 +94,34 @@ def dump_transcript_at_commercial(transcript, commercial):
     print(f'Segment end: {transcript.segments[commercial["end_line"]].end}.')
 
 
+def print_transcript_at_commercial(transcript, commercial):
+    BOLD_BLUE = '\033[1m\033[94m'
+    PLAIN = '\033[0m'
+    print(f'--- commercial from {commercial["sponsor"]} ---')
+    if commercial['start_line'] > 0:
+        print(
+            f'{commercial["start_line"]-1}: '
+            f'{transcript.segments[commercial["start_line"]-1].text}'
+        )
+    else:
+        print('Start of transcript.')
+    for line in range(commercial['start_line'], commercial['end_line']):
+        print(
+            f'{BOLD_BLUE}'
+            f'{line}: '
+            f'{transcript.segments[line].text}'
+            f'{PLAIN}'
+        )
+    if commercial['end_line'] < len(transcript.segments) - 1:
+        print(
+            f'{commercial["end_line"]+1}: '
+            f'{transcript.segments[commercial["end_line"]+1].text}'
+        )
+    else:
+        print('End of transcript.')
+    print('---')
+
+
 def write_trimmed(client, audio_file, transcript, commercial_data, output_file):
     playlist = Playlist()
     image_file = get_watermarked(get_image(audio_file))
@@ -154,6 +182,7 @@ def strip(client, path, output):
             transcript = get_transcript(client, fp.name)
             fp.close()
         commercials = combine_commercials(get_commercials(client, transcript))
+        print_transcript_at_commercial(transcript, commercials)
         write_trimmed(client, path, transcript, commercials, output)
     except RateLimitError as error:
         raise error
